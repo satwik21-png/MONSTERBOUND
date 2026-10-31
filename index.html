@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#101a24">
+  <title>MONSTERBOUND: Echoes of the Eight</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23101a24'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23f2c14e' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23f2c14e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><span class="eyebrow">MONSTERBOUND</span><strong>Echoes of the Eight</strong></div>
+      <div class="header-actions"><button id="pauseBtn" aria-label="Open pause menu">Pause</button><button id="partyBtn" aria-label="Open creatures">Creatures</button><button id="profileBtn" aria-label="Open trainer profile">Profile</button><button id="bagBtn" aria-label="Open inventory">Bag</button><button id="journalBtn" aria-label="Open quest journal">Journal</button><button id="dexBtn" aria-label="Open encyclopedia">Codex</button><button id="mapBtn" aria-label="Open region map">Map</button><button id="settingsBtn" aria-label="Open accessibility and audio settings">Settings</button><button id="animBtn" aria-label="Cycle animation speed">Anim: 1×</button><button id="muteBtn" aria-label="Toggle all audio">♪</button><button id="saveBtn">Save</button></div>
+    </header>
+    <section class="game-frame" aria-label="Game screen">
+      <div id="bootOverlay" class="boot-overlay" role="status" aria-live="polite">
+        <div class="boot-card">
+          <span class="eyebrow">MONSTERBOUND</span>
+          <p id="bootText">Preparing sprites…</p>
+          <div class="boot-track"><i id="bootBar"></i></div>
+        </div>
+      </div>
+      <canvas id="game" width="640" height="480" aria-label="MONSTERBOUND crisp pixel-art 2D game view"></canvas>
+      <div id="toast" class="toast" aria-live="polite"></div>
+      <div id="locationBanner" class="location-banner hidden"></div>
+      <div id="areaMap" class="area-map hidden" role="dialog" aria-label="Echora region map">
+        <div class="map-heading"><span>ECHORA REGION</span><button id="closeMapBtn">Close</button></div>
+        <div id="mapNodes" class="map-nodes"></div>
+        <div id="mapGuide" class="map-guide">Gold: current location · Bright: discovered · Dim: undiscovered</div>
+      </div>
+      <div id="collectionScreen" class="collection-screen hidden" role="dialog" aria-label="Creature collection">
+        <div class="collection-head"><strong id="collectionTitle">CREATURES</strong><div><button id="partyTab">Party</button><button id="storageTab">Storage</button><button id="closeCollectionBtn">Close</button></div></div>
+        <div id="collectionList" class="collection-list"></div><div id="collectionDetail" class="collection-detail">Select a creature.</div>
+      </div>
+      <div id="profileScreen" class="collection-screen hidden" role="dialog" aria-label="Trainer profile">
+        <div class="collection-head"><strong id="profileTitle">LISTENER PROFILE</strong><button id="closeProfileBtn">Close</button></div>
+        <div id="badgeGrid" class="badge-grid"></div><div id="profileDetail" class="collection-detail"></div>
+      </div>
+      <div id="settingsScreen" class="settings-screen hidden" role="dialog" aria-label="Accessibility and audio settings">
+        <div class="collection-head"><strong>SETTINGS</strong><button id="closeSettingsBtn">Close</button></div>
+        <label>Master volume <output id="masterValue">100%</output><input id="masterVolume" type="range" min="0" max="100" step="5"></label>
+        <label>Music volume <output id="musicValue">55%</output><input id="musicVolume" type="range" min="0" max="100" step="5"></label>
+        <label>Sound effects <output id="sfxValue">70%</output><input id="sfxVolume" type="range" min="0" max="100" step="5"></label>
+        <label class="setting-toggle"><input id="musicMuted" type="checkbox"> Music off</label>
+        <label class="setting-toggle"><input id="sfxMuted" type="checkbox"> Sound effects off</label>
+        <label>Location ambience <output id="ambienceValue">45%</output><input id="ambienceVolume" type="range" min="0" max="100" step="5"></label>
+        <label>Animation speed <select id="animationSpeed"><option value="0.5">Relaxed · 0.5×</option><option value="1">Standard · 1×</option><option value="1.5">Fast · 1.5×</option><option value="2">Very fast · 2×</option></select></label>
+        <label>Text speed <select id="textSpeed"><option value="0.6">Slow</option><option value="1">Standard</option><option value="1.8">Fast</option><option value="99">Instant</option></select></label>
+        <label class="setting-toggle"><input id="reducedMotion" type="checkbox"> Reduced motion and flashes</label>
+        <label class="setting-toggle"><input id="muteAll" type="checkbox"> Mute all audio</label>
+        <section class="binding-section"><strong>KEY BINDINGS</strong><div id="bindingList"></div><small>Select a control, then press a key. Escape cancels rebinding.</small></section>
+        <p>Settings save automatically. Keyboard focus remains visible in every menu.</p>
+      </div>
+      <div id="journalScreen" class="collection-screen hidden" role="dialog" aria-label="Quest journal">
+        <div class="collection-head"><strong id="chapterTitle">CAMPAIGN JOURNAL</strong><button id="closeJournalBtn">Close</button></div>
+        <div id="questList" class="collection-list"></div><div id="questDetail" class="collection-detail"></div>
+      </div>
+      <div id="bagScreen" class="collection-screen hidden" role="dialog" aria-label="Inventory">
+        <div class="collection-head"><strong>BAG <span id="bagCapacity"></span></strong><div id="bagTabs"></div><button id="closeBagBtn">Close</button></div>
+        <div id="bagList" class="collection-list"></div><div id="bagDetail" class="collection-detail">Select an item.</div>
+      </div>
+      <div id="shopScreen" class="collection-screen hidden" role="dialog" aria-label="Shop">
+        <div class="collection-head"><strong id="shopTitle">RESONANCE SUPPLY</strong><div><button id="buyTab">Buy</button><button id="sellTab">Sell</button><button id="closeShopBtn">Close</button></div></div>
+        <div id="shopList" class="collection-list"></div><div id="shopDetail" class="collection-detail"></div>
+      </div>
+      <div id="healingUI" class="healing-ui hidden"><div class="heal-orbs"><i></i><i></i><i></i><i></i><i></i><i></i></div><strong id="healingText">Restoring your party’s resonance…</strong></div>
+      <div id="dexScreen" class="collection-screen hidden" role="dialog" aria-label="Creature encyclopedia">
+        <div class="collection-head"><strong>ECHOPEDIA <span id="dexCount"></span></strong><button id="closeDexBtn">Close</button></div>
+        <div id="dexGrid" class="dex-grid"></div><div id="dexDetail" class="collection-detail">Select a recorded species.</div>
+      </div>
+      <div id="evolutionUI" class="evolution-ui hidden"><strong id="evolutionText">A new resonance is forming…</strong><button id="cancelEvolutionBtn">Cancel evolution</button></div>
+      <div id="pauseScreen" class="pause-screen hidden" role="dialog" aria-label="Pause menu">
+        <div class="pause-head"><span>JOURNEY PAUSED</span><button id="resumeBtn">Resume</button></div>
+        <div class="pause-summary"><strong id="pausePlayer">Listener</strong><span id="pauseProgress">0 badges</span></div>
+        <div class="pause-grid"><button id="pausePartyBtn">Party</button><button id="pauseDexBtn">Creature Encyclopedia</button><button id="pauseBagBtn">Bag</button><button id="pauseMapBtn">Region Map</button><button id="pauseJournalBtn">Quest Journal</button><button id="pauseSaveBtn">Save Game</button><button id="pauseSettingsBtn">Settings</button><button id="pauseTitleBtn">Return to Title</button></div>
+      </div>
+      <div id="creditsScreen" class="credits-screen hidden" role="dialog" aria-label="Credits">
+        <h2>MONSTERBOUND</h2><p>Echoes of the Eight</p><p>Original game design, code, story, creature concepts, procedural music, and pixel assets created for this project.</p><p>Built with HTML5 Canvas and native JavaScript.</p><button id="closeCreditsBtn">Back</button>
+      </div>
+      <div id="difficultyScreen" class="screen-card difficulty-screen hidden" role="dialog" aria-labelledby="difficultyTitle">
+        <div class="sigil">8</div><h2 id="difficultyTitle">CHOOSE YOUR JOURNEY</h2><p class="difficulty-intro">Difficulty is saved for this adventure.</p>
+        <div class="difficulty-options">
+          <button id="easyDifficultyBtn" data-difficulty="easy"><strong>Easy</strong><small>Stronger allies · easier captures · larger rewards</small></button>
+          <button id="mediumDifficultyBtn" data-difficulty="medium" class="primary"><strong>Medium</strong><small>The intended balanced adventure</small></button>
+          <button id="hardDifficultyBtn" data-difficulty="hard"><strong>Hard</strong><small>Tougher enemies · harder captures · leaner rewards</small></button>
+        </div>
+        <button id="cancelDifficultyBtn" class="difficulty-cancel">Back</button>
+      </div>
+      <div id="openingScene" class="opening-scene legendary-opening hidden" role="dialog" aria-label="Legendary creature battle intro">
+        <div class="legendary-arena" aria-hidden="true">
+          <i class="legend-star s1"></i><i class="legend-star s2"></i><i class="legend-star s3"></i><i class="legend-star s4"></i>
+          <div class="legend-ground"></div>
+          <div class="legend-aura aura-left"></div><div class="legend-aura aura-right"></div>
+          <div class="legend-fighter voltaris"><span class="legend-wing wing-b"></span><span class="legend-body"></span><span class="legend-wing wing-a"></span></div><div class="legend-fighter pyraxis"><span class="legend-wing wing-b"></span><span class="legend-body"></span><span class="legend-wing wing-a"></span></div>
+          <div class="signature-name voltaris-move">TEMPEST CROWN</div><div class="signature-name pyraxis-move">SOLAR PYRE</div>
+          <div class="thunder-field"><b></b><b></b><b></b><b></b><b></b></div><div class="flame-field"><b></b><b></b><b></b><b></b><b></b></div>
+          <div class="legend-energy energy-left"></div><div class="legend-energy energy-right"></div><div class="legend-clash"></div>
+          <div class="legendary-title"><strong>MONSTERBOUND</strong><span>LEGENDS COLLIDE</span></div>
+        </div>
+        <button id="skipOpeningBtn" class="legend-skip">Skip Intro</button>
+      </div>
+      <div id="titleScreen" class="screen-card">
+        <div class="title-stars" aria-hidden="true"></div><div class="sigil">8</div><h1>MONSTERBOUND</h1><p>Echoes of the Eight</p>
+        <div class="title-actions"><button id="newBtn">New Game</button><button id="continueBtn" class="primary">Continue</button><button id="titleSettingsBtn">Settings</button><button id="creditsBtn">Credits</button></div>
+        <div id="titleStatus" class="title-status" aria-live="polite"></div><button id="recoverBtn" class="recovery hidden">Recover Backup Save</button>
+        <small>An original creature-collecting adventure</small>
+      </div>
+      <div id="dialogue" class="dialogue hidden" role="dialog" aria-live="polite">
+        <div id="speaker" class="speaker"></div><p id="dialogueText"></p><div id="choices"></div><span class="advance">▼</span>
+      </div>
+      <div id="battleMenu" class="battle-menu hidden">
+        <div class="battle-message" id="battleMessage"></div>
+        <div id="battleActions" class="battle-actions"></div>
+      </div>
+    </section>
+    <section class="hud">
+      <div><span class="label">LOCATION</span><strong id="locationLabel">—</strong></div>
+      <div><span class="label">FIELD TASK</span><strong id="questLabel">Find the Lab</strong></div>
+      <div><span class="label">PARTY</span><strong id="partyLabel">0 / 6</strong></div>
+    </section>
+    <section id="mobileControls" class="mobile-controls" aria-label="Touch controls">
+      <div class="dpad">
+        <button data-key="up" aria-label="Move up">▲</button><button data-key="left" aria-label="Move left">◀</button><button data-key="down" aria-label="Move down">▼</button><button data-key="right" aria-label="Move right">▶</button>
+      </div>
+      <div class="mobile-center-controls"><button class="mobile-pause" data-key="pause" aria-label="Open menu">☰<small>MENU</small></button><button id="infoBtn" class="mobile-info" aria-label="Show player information">ⓘ<small>INFO</small></button></div><div class="ab"><button data-key="mobileCancel" aria-label="Run or go back"><span id="mobileCancelLabel">Run</span></button><button data-key="action" class="a" aria-label="Confirm or interact"><span id="mobileActionLabel">Interact</span></button></div>
+    </section>
+    <footer>Move: WASD / arrows · Run: Shift · Interact: Z / Enter · Map: M · Back: X / Esc</footer>
+  </main>
+  <script src="assets.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
